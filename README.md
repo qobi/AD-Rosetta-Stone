@@ -12,7 +12,7 @@ This repository holds source code files, each of which implements one example in
 
 There are five examples.
 
-* A toy multilayer perceptron, or **mlp** (F / R)
+* A toy multilayer perceptron, or **mlp** (Fs / Fv / R)
 
   This is a tiny classic vanilla multilayer perceptron neural network, trained by gradient descent.  (The gradient of such a system would typically be computed by backpropagation, aka reverse-mode AD.)
 
@@ -34,7 +34,7 @@ There are five examples.
 
 ## Forward vs Reverse Mode
 
-Two of the examples (*saddle* and *particle*) involve nested use of AD.  Each AD operation can be done using either forward or reverse, leading to variants listed in parenthesis above.  Some systems support both scalar and vector forward mode, the latter sometimes called “stacked tangents.”  When this would make sense for a particular benchmark (currently only *mlp*) instead of just an F variant, there are Fs and Fv variants.
+Two of the examples (*saddle* and *particle*) involve nested use of AD.  Each AD operation can be done using either forward or reverse, leading to variants listed in parenthesis above.  Some systems support both conventional (single tangent) and vector (stacked tangents) forward mode, which we call **Fs** and **Fv**.  When *Fv* would make sense for a particular example (currently only *mlp*), instead of just a single F variant, there are Fs and Fv variants.
 
 ## Coding Style
 
