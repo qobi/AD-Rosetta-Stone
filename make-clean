@@ -1,0 +1,19 @@
+#!/bin/tcsh -f
+rm -f {particle,saddle}-{F,R}{F,R}-{bigloo,chicken,gambit,haskell-ad,mlton,mzc,ocaml,s2c,stalin,stalingrad}
+rm -f {common,{particle,saddle}-{F,R}{F,R}}-larceny.fasl
+rm -f {common,{particle,saddle}-{F,R}{F,R}}-mitscheme.{bci,bin,com}
+rm -f {common,{particle,saddle}-FF}-scmutils.{bci,bin,com}
+rm -f {particle,saddle}-FF-{adifor,fadbad++,tapenade}
+rm -f {particle,saddle}-{F,R}{F,R}-smlnj.x86-linux
+
+rm -f probabilistic-{lambda-calculus,prolog}-{F,R}-{bigloo,chicken,gambit,haskel-ad,mlton,mzc,ocaml,s2c,stalin,stalingrad}
+rm -f probabilistic-{lambda-calculus,prolog}-{F,R}-larceny.fasl
+rm -f probabilistic-{lambda-calculus,prolog}-{F,R}-mitscheme.{bci,bin,com}
+rm -f probabilistic-{lambda-calculus,prolog}-F-scmutils.{bci,bin,com}
+rm -f probabilistic-{lambda-calculus,prolog}-{F,R}-smlnj.x86-linux
+
+rm -f mlp-{F{s,v},R}-{adic,adifor,adolc,bigloo,chicken,cppad,fadbad++,gambit,haskell-ad,mlton,mzc,ocaml,s2c,stalin,stalingrad,tapenade}
+rm -f mlp-{Fs,R}-larceny.fasl
+rm -f mlp-{Fs,R}-mitscheme.{bci,bin,com}
+rm -f mlp-Fs-scmutils.{bci,bin,com}
+rm -f mlp-{Fs,R}-smlnj.x86-linux

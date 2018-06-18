@@ -1,0 +1,471 @@
+#!/bin/tcsh -f
+unlimit stack
+setenv SCMAXHEAP 1700
+
+setenv AD_HOME $HOME/pkg/adifor/ADIFOR2.0D
+setenv AD_LIB $HOME/pkg/adifor/ADIFOR2.0D.lib
+setenv AD_OS Linux86
+setenv PATH ${PATH}:$AD_HOME/bin
+setenv ADIC $HOME/pkg/adic-1.2.0
+setenv ADIC_ARCH `$ADIC/bin/adicarch`
+setenv PATH ${PATH}:$ADIC/bin/$ADIC_ARCH
+
+# need to run on jessie since doesn't run on stretch
+ssh jalitusteabe /net/`hostname`/`pwd`/preprocess-adifor-examples /net/`hostname`/`pwd`
+
+cp a/*-stalingrad.c .
+
+cp common-haskell-ad.hs Common_Haskell_AD.hs
+
+~/schemes/install/larceny-1.3-bin-native-ia32-linux86/larceny <<EOF
+(compiler-switches 'fast-unsafe)
+(compile-file "common-larceny.scm")
+EOF
+
+mit-scheme\
+  --library ~/schemes/install/scmutils/mit-scheme/lib\
+  --heap 6000 --band edwin-mechanics.com <<EOF
+(cf "common-mitscheme")
+EOF
+
+mit-scheme\
+  --library ~/schemes/install/scmutils/mit-scheme/lib\
+  --heap 6000 --band edwin-mechanics.com <<EOF
+(cf "common-scmutils")
+EOF
+
+# need to run on jessie since doesn't run on stretch
+#Adifor2.1 AD_SCRIPT=particle-FF-adifor1.adf
+#Adifor2.1 AD_SCRIPT=particle-FF-adifor2.adf
+cp adifor/particle-FF/* .
+# ADIFOR precompiled libraries only for 32 bit
+gfortran -m32 -O3 -ffast-math\
+    -o particle-FF-adifor\
+    particle-FF-adifor.f particle-FF-adifor1.f particle-FF-adifor2.f\
+    common-adifor.f\
+    g_common-adifor.f h_common-adifor.f h_g_common-adifor.f\
+    g_particle-FF-adifor1.f h_g_particle-FF-adifor1.f h_particle-FF-adifor2.f\
+    $AD_LIB/lib/ReqADIntrinsics-$AD_OS.o $AD_LIB/lib/libADIntrinsics-$AD_OS.a
+rm -f *.{A,aux} *~ .*.f
+rm -rf AD_cache
+rm -f g_common-adifor.f h_common-adifor.f h_g_common-adifor.f\
+      g_particle-FF-adifor1.f h_g_particle-FF-adifor1.f h_particle-FF-adifor2.f
+
+# need to run on jessie since doesn't run on stretch
+#Adifor2.1 AD_SCRIPT=saddle-FF-adifor1.adf
+#Adifor2.1 AD_SCRIPT=saddle-FF-adifor2.adf
+cp adifor/saddle-FF/* .
+# ADIFOR precompiled libraries only for 32 bit
+gfortran -m32 -O3 -ffast-math\
+    -o saddle-FF-adifor\
+    saddle-FF-adifor.f saddle-FF-adifor1.f saddle-FF-adifor2.f common-adifor.f\
+    g_saddle-FF-adifor1.f h_common-adifor.f h_g_saddle-FF-adifor1.f\
+    h_saddle-FF-adifor1.f h_saddle-FF-adifor2.f\
+    $AD_LIB/lib/ReqADIntrinsics-$AD_OS.o $AD_LIB/lib/libADIntrinsics-$AD_OS.a
+rm -f *.{A,aux} *~ .*.f
+rm -rf AD_cache
+rm -f g_saddle-FF-adifor1.f h_common-adifor.f h_g_saddle-FF-adifor1.f\
+      h_saddle-FF-adifor1.f h_saddle-FF-adifor2.f
+
+rm -f DIFFSIZES.inc
+tapenade2.2.2 -root p\
+	      -d -multi -o particle-FF-tapenade\
+	      -diffvarname "_g" -difffuncname "_g"\
+	      common-tapenade.f particle-FF-tapenade.f
+cp particle-FF-tapenade-DIFFSIZES1.inc DIFFSIZES.inc
+tapenade2.2.2 -root naive_euler\
+	      -d -multi -o particle-FF-tapenade\
+	      -diffvarname "_h" -difffuncname "_h"\
+	      common-tapenade.f particle-FF-tapenade.f particle-FF-tapenade_gv.f
+cp particle-FF-tapenade-DIFFSIZES2.inc DIFFSIZES.inc
+rm -f foo.f
+sed -f particle-FF-tapenade.sed <particle-FF-tapenade_hv.f >foo.f
+mv foo.f particle-FF-tapenade_hv.f
+gfortran -O3 -ffast-math\
+    -o particle-FF-tapenade\
+    common-tapenade.f\
+    particle-FF-tapenade.f particle-FF-tapenade_gv.f particle-FF-tapenade_hv.f
+rm -f DIFFSIZES.inc particle-FF-tapenade_{g,h}v.{f,msg}
+
+rm -f DIFFSIZES.inc
+tapenade2.2.2 -root inner\
+              -d -multi -o saddle-FF-tapenade\
+              -diffvarname "_g" -difffuncname "_g"\
+               common-tapenade.f saddle-FF-tapenade.f
+cp saddle-FF-tapenade-DIFFSIZES1.inc DIFFSIZES.inc
+tapenade2.2.2 -root outer\
+              -d -multi -o saddle-FF-tapenade\
+              -diffvarname "_h" -difffuncname "_h"\
+              common-tapenade.f saddle-FF-tapenade.f saddle-FF-tapenade_gv.f
+cp saddle-FF-tapenade-DIFFSIZES2.inc DIFFSIZES.inc
+rm -f foo.f
+sed -f saddle-FF-tapenade.sed <saddle-FF-tapenade_hv.f >foo.f
+mv foo.f saddle-FF-tapenade_hv.f
+gfortran -O3 -ffast-math\
+    -o saddle-FF-tapenade\
+    common-tapenade.f\
+    saddle-FF-tapenade.f saddle-FF-tapenade_gv.f saddle-FF-tapenade_hv.f
+rm -f DIFFSIZES.inc saddle-FF-tapenade_{g,h}v.{f,msg}
+
+foreach e (particle saddle)
+
+  g++ -I ~/pkg/FADBAD++\
+      -O3 -ffast-math\
+      -o $e-FF-fadbad++ $e-FF-fadbad++.cpp
+
+  rm -f /tmp/script
+  echo >/tmp/script '(load "common-scmutils")'
+  echo -n >>/tmp/script '(cf "'
+  echo -n >>/tmp/script $e
+  echo >>/tmp/script '-FF-scmutils")'
+  mit-scheme\
+    --library ~/schemes/install/scmutils/mit-scheme/lib\
+    --heap 6000 --band edwin-mechanics.com </tmp/script
+  rm -f /tmp/script
+
+  foreach d (FF FR RF RR)
+
+    # -fstack not accepted
+    bigloo -unsafe -Obench -O6\
+	   -copt "-O3 -freg-struct-return -ffast-math"\
+	   -o $e-$d-bigloo -suffix sc $e-$d-bigloo.sc
+    rm -f $e-$d-bigloo.o
+
+    # removed -lambda-lift
+    csc -disable-interrupts -debug-level 0 -block\
+	-optimize-leaf-routines -unsafe -O3 $e-$d-chicken.sc
+
+    gsc -link $e-$d-gambit.sc
+    gcc -O3 -ffast-math\
+	-D___SINGLE_HOST -o $e-$d-gambit $e-$d-gambit.c $e-$d-gambit_.c\
+	-lgambc -lm -ldl -lutil
+    rm -f $e-$d-gambit.c $e-$d-gambit_.c
+
+    ghc -o $e-$d-haskell-ad $e-$d-haskell-ad.hs
+    rm -f $e-$d-haskell-ad.{hi,o}
+
+    rm -f /tmp/script
+    echo >/tmp/script "(compiler-switches 'fast-unsafe)"
+    echo >>/tmp/script '(load "common-larceny.fasl")'
+    echo -n >>/tmp/script '(compile-file "'
+    echo -n >>/tmp/script $e
+    echo -n >>/tmp/script "-"
+    echo -n >>/tmp/script $d
+    echo >>/tmp/script '-larceny.scm")'
+    ~/schemes/install/larceny-1.3-bin-native-ia32-linux86/larceny </tmp/script
+    rm -f /tmp/script
+
+    rm -f /tmp/script
+    echo >/tmp/script '(load "common-mitscheme")'
+    echo -n >>/tmp/script '(cf "'
+    echo -n >>/tmp/script $e
+    echo -n >>/tmp/script "-"
+    echo -n >>/tmp/script $d
+    echo >>/tmp/script '-mitscheme")'
+    mit-scheme\
+      --library ~/schemes/install/scmutils/mit-scheme/lib\
+      --heap 6000 --band edwin-mechanics.com </tmp/script
+    rm -f /tmp/script
+
+    cat {common,$e-$d}-mlton.sml >foo.sml
+    mlton foo.sml
+    rm -f foo.sml
+    mv foo $e-$d-mlton
+
+    # removed --unsafe-disable-interrupts --unsafe-skip-tests --unsafe-fixnum-arithmetic
+    mzc --exe $e-$d-mzc $e-$d-mzc.ss
+
+    cat {common,$e-$d}-ocaml.ml >foo.ml
+    ocamlopt -inline 100 -ccopt -ffast-math -o foo foo.ml
+    rm -f foo.ml
+    rm -f foo.{cmi,cmx,o}
+    mv foo $e-$d-ocaml
+
+    scc -o $e-$d-s2c -Ob -Og -Ot -O3 $e-$d-s2c.sc
+    rm -f $e-$d-s2c.c
+
+    rm -f /tmp/script
+    echo -n >/tmp/script 'SMLofNJ.exportFn ("'
+    echo -n >>/tmp/script $e
+    echo -n >>/tmp/script '-'
+    echo -n >>/tmp/script $d
+    echo -n >>/tmp/script '-smlnj",run);'
+    sml common-smlnj.sml $e-$d-smlnj.sml </tmp/script
+    rm -f /tmp/script
+
+    # -no-clone-size-limit breaks at least particle-FF under lenny
+    stalin -db -d -Ob -Om -On -Or -Ot\
+	   -copt -O3\
+           -copt -freg-struct-return\
+	   -copt -ffast-math $e-$d-stalin
+
+    gcc -O3 -ffast-math\
+	-o $e-$d-stalingrad $e-$d-stalingrad.c -lm -lgc
+
+    end
+  end
+
+foreach e (probabilistic-lambda-calculus probabilistic-prolog)
+
+  rm -f /tmp/script
+  echo >/tmp/script '(load "common-scmutils")'
+  echo -n >>/tmp/script '(cf "'
+  echo -n >>/tmp/script $e
+  echo >>/tmp/script '-F-scmutils")'
+  mit-scheme\
+    --library ~/schemes/install/scmutils/mit-scheme/lib\
+    --heap 6000 --band edwin-mechanics.com </tmp/script
+  rm -f /tmp/script
+
+  foreach d (F R)
+
+    # -fstack not accepted
+    bigloo -unsafe -Obench -O6\
+	   -copt "-O3 -freg-struct-return -ffast-math"\
+	   -o $e-$d-bigloo -suffix sc $e-$d-bigloo.sc
+    rm -f $e-$d-bigloo.o
+
+    # removed -lambda-lift
+    csc -disable-interrupts -debug-level 0 -block\
+	-optimize-leaf-routines -unsafe -O3 $e-$d-chicken.sc
+
+    gsc -link $e-$d-gambit.sc
+    gcc -O3 -ffast-math\
+	-D___SINGLE_HOST -o $e-$d-gambit $e-$d-gambit.c $e-$d-gambit_.c\
+	-lgambc -lm -ldl -lutil
+    rm -f $e-$d-gambit.c $e-$d-gambit_.c
+
+    ghc -o $e-$d-haskell-ad $e-$d-haskell-ad.hs
+    rm -f $e-$d-haskell-ad.{hi,o}
+
+    rm -f /tmp/script
+    echo >/tmp/script "(compiler-switches 'fast-unsafe)"
+    echo >>/tmp/script '(load "common-larceny.fasl")'
+    echo -n >>/tmp/script '(compile-file "'
+    echo -n >>/tmp/script $e
+    echo -n >>/tmp/script "-"
+    echo -n >>/tmp/script $d
+    echo >>/tmp/script '-larceny.scm")'
+    ~/schemes/install/larceny-1.3-bin-native-ia32-linux86/larceny </tmp/script
+    rm -f /tmp/script
+
+    rm -f /tmp/script
+    echo >/tmp/script '(load "common-mitscheme")'
+    echo -n >>/tmp/script '(cf "'
+    echo -n >>/tmp/script $e
+    echo -n >>/tmp/script "-"
+    echo -n >>/tmp/script $d
+    echo >>/tmp/script '-mitscheme")'
+    mit-scheme\
+      --library ~/schemes/install/scmutils/mit-scheme/lib\
+      --heap 6000 --band edwin-mechanics.com </tmp/script
+    rm -f /tmp/script
+
+    cat {common,$e-$d}-mlton.sml >foo.sml
+    mlton foo.sml
+    rm -f foo.sml
+    mv foo $e-$d-mlton
+
+  # removed --unsafe-disable-interrupts --unsafe-skip-tests --unsafe-fixnum-arithmetic
+    mzc --exe $e-$d-mzc $e-$d-mzc.ss
+
+    cat {common,$e-$d}-ocaml.ml >foo.ml
+    ocamlopt -inline 100 -ccopt -ffast-math -o foo foo.ml
+    rm -f foo.ml
+    rm -f foo.{cmi,cmx,o}
+    mv foo $e-$d-ocaml
+
+    scc -o $e-$d-s2c -Ob -Og -Ot -O3 $e-$d-s2c.sc
+    rm -f $e-$d-s2c.c
+
+    rm -f /tmp/script
+    echo -n >/tmp/script 'SMLofNJ.exportFn ("'
+    echo -n >>/tmp/script $e
+    echo -n >>/tmp/script '-'
+    echo -n >>/tmp/script $d
+    echo -n >>/tmp/script '-smlnj",run);'
+    sml common-smlnj.sml $e-$d-smlnj.sml </tmp/script
+    rm -f /tmp/script
+
+    # -no-clone-size-limit breaks probabilistic-{lambda-calculus,prolog}-F
+    # under lenny
+    stalin -db -d -Ob -Om -On -Or -Ot\
+	   -copt -O3\
+           -copt -freg-struct-return\
+	   -copt -ffast-math $e-$d-stalin
+
+    gcc -O3 -ffast-math\
+	-o $e-$d-stalingrad $e-$d-stalingrad.c -lm -lgc
+
+    end
+  end
+
+adiC -vd gradient mlp-Fs-adic-f.c
+# ADIC precompiled libraries only for 32 bit
+gcc -m32 -I${ADIC}/include -Dad_GRAD_MAX=1\
+    -O3 -ffast-math\
+    -o mlp-Fs-adic mlp-Fs-adic.c\
+    -L ${ADIC}/lib/${ADIC_ARCH} -laif_grad -lADIntrinsics-C -lm
+rm -f ad_deriv.h mlp-Fs-adic-f.ad.c
+
+adiC -vd gradient mlp-Fv-adic-f.c
+# ADIC precompiled libraries only for 32 bit
+gcc -m32 -I${ADIC}/include -Dad_GRAD_MAX=9\
+    -O3 -ffast-math\
+    -o mlp-Fv-adic mlp-Fv-adic.c\
+    -L ${ADIC}/lib/${ADIC_ARCH} -laif_grad -lADIntrinsics-C -lm
+rm -f ad_deriv.h mlp-Fv-adic-f.ad.c
+
+rm -f /tmp/script
+echo >/tmp/script '(load "common-scmutils")'
+echo >>/tmp/script '(cf "mlp-Fs-scmutils")'
+mit-scheme\
+  --library ~/schemes/install/scmutils/mit-scheme/lib\
+  --heap 6000 --band edwin-mechanics.com </tmp/script
+rm -f /tmp/script
+
+# -no-clone-size-limit breaks this example under lenny
+# without -dH mlp-Fs runs out of memory
+stalin -db -d -dH -Ob -Om -On -Or -Ot\
+       -copt -O3\
+       -copt -freg-struct-return\
+       -copt -ffast-math mlp-Fs-stalin
+
+# without -dH mlp-R runs out of memory
+stalin -db -d -dH -Ob -Om -On -Or -Ot\
+       -no-clone-size-limit -split-even-if-no-widening\
+       -copt -O3\
+       -copt -freg-struct-return\
+       -copt -ffast-math mlp-R-stalin
+
+cp mlp-tapenade-DIFFSIZES.inc DIFFSIZES.inc
+
+tapenade2.2.2 -root error_on_dataset -d\
+              -o mlp-Fs-tapenade-f mlp-Fs-tapenade-f.f
+gfortran -O3 -ffast-math\
+         -o mlp-Fs-tapenade\
+         mlp-Fs-tapenade.f mlp-Fs-tapenade-f_d.f
+rm -f mlp-Fs-tapenade-f_d.f mlp-Fs-tapenade-f_d.msg
+
+tapenade2.2.2 -root error_on_dataset -d -multi\
+              -o mlp-Fv-tapenade-f mlp-Fv-tapenade-f.f
+gfortran -O3 -ffast-math\
+         -o mlp-Fv-tapenade\
+         mlp-Fv-tapenade.f mlp-Fv-tapenade-f_dv.f
+rm -f mlp-Fv-tapenade-f_dv.f mlp-Fv-tapenade-f_dv.msg
+
+tapenade2.2.2 -root error_on_dataset -b\
+              -o mlp-R-tapenade-f mlp-R-tapenade-f.f
+gfortran -O3 -ffast-math\
+         -o mlp-R-tapenade mlp-R-tapenade-f.f\
+         mlp-R-tapenade-f_b.f mlp-R-tapenade.f\
+         ~/pkg/tapenade2.2.2/ADFirstAidKit/adBuffer.f\
+         ~/pkg/tapenade2.2.2/ADFirstAidKit/adStack.c
+rm -f mlp-R-tapenade-f_b.f mlp-R-tapenade-f_b.msg
+
+foreach d (Fs R)
+
+  g++ -I ~/include\
+      -O3 -ffast-math\
+      -o mlp-$d-cppad mlp-$d-cppad.cpp
+
+  # -fstack not accepted
+  bigloo -unsafe -Obench -O6\
+	 -copt "-O3 -freg-struct-return -ffast-math"\
+	 -o mlp-$d-bigloo -suffix sc mlp-$d-bigloo.sc
+  rm -f mlp-$d-bigloo.o
+
+  # removed -lambda-lift
+  csc -disable-interrupts -debug-level 0 -block\
+      -optimize-leaf-routines -unsafe -O3 mlp-$d-chicken.sc
+
+  gsc -link mlp-$d-gambit.sc
+  gcc -O3 -ffast-math\
+      -D___SINGLE_HOST -o mlp-$d-gambit mlp-$d-gambit.c\
+      mlp-$d-gambit_.c\
+      -lgambc -lm -ldl -lutil
+  rm -f mlp-$d-gambit.c mlp-$d-gambit_.c
+
+  ghc -o mlp-$d-haskell-ad mlp-$d-haskell-ad.hs
+  rm -f mlp-$d-haskell-ad.{hi,o}
+
+  rm -f /tmp/script
+  echo >/tmp/script "(compiler-switches 'fast-unsafe)"
+  echo >>/tmp/script '(load "common-larceny.fasl")'
+  echo -n >>/tmp/script '(compile-file "mlp-'
+  echo -n >>/tmp/script $d
+  echo >>/tmp/script '-larceny.scm")'
+  ~/schemes/install/larceny-1.3-bin-native-ia32-linux86/larceny </tmp/script
+  rm -f /tmp/script
+
+  rm -f /tmp/script
+  echo >/tmp/script '(load "common-mitscheme")'
+  echo -n >>/tmp/script '(cf "mlp-'
+  echo -n >>/tmp/script $d
+  echo >>/tmp/script '-mitscheme")'
+  mit-scheme\
+    --library ~/schemes/install/scmutils/mit-scheme/lib\
+    --heap 6000 --band edwin-mechanics.com </tmp/script
+  rm -f /tmp/script
+
+  cat {common,mlp-$d}-mlton.sml >foo.sml
+  mlton foo.sml
+  rm -f foo.sml
+  mv foo mlp-$d-mlton
+
+  # removed --unsafe-disable-interrupts --unsafe-skip-tests --unsafe-fixnum-arithmetic
+  mzc --exe mlp-$d-mzc mlp-$d-mzc.ss
+
+  cat {common,mlp-$d}-ocaml.ml >foo.ml
+  ocamlopt -inline 100 -ccopt -ffast-math -o foo foo.ml
+  rm -f foo.ml
+  rm -f foo.{cmi,cmx,o}
+  mv foo mlp-$d-ocaml
+
+  scc -o mlp-$d-s2c -Ob -Og -Ot -O3 mlp-$d-s2c.sc
+  rm -f mlp-$d-s2c.c
+
+  rm -f /tmp/script
+  echo -n >/tmp/script 'SMLofNJ.exportFn ("mlp-'
+  echo -n >>/tmp/script $d
+  echo -n >>/tmp/script '-smlnj",run);'
+  sml common-smlnj.sml mlp-$d-smlnj.sml </tmp/script
+  rm -f /tmp/script
+
+  gcc -O3 -ffast-math\
+      -o mlp-$d-stalingrad mlp-$d-stalingrad.c -lm -lgc
+
+  end
+
+foreach d (Fs Fv)
+
+  # need to run on jessie since doesn't run on stretch
+  #Adifor2.1 AD_SCRIPT=mlp-$d-adifor.adf
+  cp adifor/mlp-$d/* .
+  # ADIFOR precompiled libraries only for 32 bit
+  gfortran -m32 -O3 -ffast-math\
+	   -o mlp-$d-adifor mlp-$d-adifor.f g_mlp-$d-adifor-f.f\
+	   $AD_LIB/lib/libADIntrinsics-Linux86.a -lm
+  rm -f g_mlp-$d-adifor-f.{A,aux} .mlp-$d-adifor-f.f
+  rm -rf AD_cache
+  rm -f g_mlp-$d-adifor-f.f
+
+  end
+
+foreach d (Fs Fv R)
+
+  g++ -O3 -ffast-math -o mlp-$d-adolc mlp-$d-adolc.cpp -ladolc
+
+  g++ -I ~/pkg/FADBAD++\
+      -O3 -ffast-math\
+      -o mlp-$d-fadbad++ mlp-$d-fadbad++.cpp
+
+  end
+
+rm -f DIFFSIZES.inc
+
+rm -f Common_Haskell_AD.{hi,o,hs}
+
+rm -f *-stalingrad.c
+
+rm -rf adifor

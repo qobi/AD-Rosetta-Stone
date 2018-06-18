@@ -1,0 +1,44 @@
+#!/bin/tcsh -f
+
+# need to run on jessie since doesn't run on stretch
+
+setenv AD_HOME $HOME/pkg/adifor/ADIFOR2.0D
+setenv AD_LIB $HOME/pkg/adifor/ADIFOR2.0D.lib
+setenv AD_OS Linux86
+setenv PATH ${PATH}:$AD_HOME/bin
+
+cd $1
+
+rm -f *.{A,aux} *~ .*.f
+rm -rf AD_cache
+
+rm -rf adifor
+mkdir adifor
+
+Adifor2.1 AD_SCRIPT=particle-FF-adifor1.adf
+Adifor2.1 AD_SCRIPT=particle-FF-adifor2.adf
+mkdir adifor/particle-FF
+rm -f *.{A,aux} *~ .*.f
+rm -rf AD_cache
+mv -i g_common-adifor.f h_common-adifor.f h_g_common-adifor.f\
+      g_particle-FF-adifor1.f h_g_particle-FF-adifor1.f h_particle-FF-adifor2.f\
+      adifor/particle-FF/.
+
+Adifor2.1 AD_SCRIPT=saddle-FF-adifor1.adf
+Adifor2.1 AD_SCRIPT=saddle-FF-adifor2.adf
+mkdir adifor/saddle-FF
+rm -f *.{A,aux} *~ .*.f
+rm -rf AD_cache
+mv -i g_saddle-FF-adifor1.f h_common-adifor.f h_g_saddle-FF-adifor1.f\
+      h_saddle-FF-adifor1.f h_saddle-FF-adifor2.f\
+      adifor/saddle-FF/.
+
+foreach d (Fs Fv)
+
+  Adifor2.1 AD_SCRIPT=mlp-$d-adifor.adf
+  mkdir adifor/mlp-$d
+  rm -rf AD_cache g_mlp-$d-adifor-f.{A,aux}
+  rm -f .mlp-$d-adifor-f.f
+  mv -i g_mlp-$d-adifor-f.f adifor/mlp-$d/.
+
+  end

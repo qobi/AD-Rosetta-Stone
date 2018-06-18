@@ -1,0 +1,6 @@
+#!/bin/tcsh -f
+rm -f run.text run{1,2,3,4}.tex tables.{aux,log,pdf}
+unbuff >run.text ./run-examples1
+qsci <tabulate.sc
+pdflatex tables
+rm -f tables.{aux,log}

@@ -1,0 +1,62 @@
+#!/bin/bash
+set -e
+
+echo "Setting up..."
+
+ln -sf common-haskell-ad.hs Common_Haskell_AD.hs
+GHC=ghc
+GHCFLAGS=$*
+
+echo "Compiling..."
+
+for e in particle saddle; do
+    for d in FF FR RF RR; do
+	${GHC} ${GHCFLAGS} -o ${e}-${d}-haskell-ad ${e}-${d}-haskell-ad.hs
+	rm -f ${e}-${d}-haskell-ad.{hi,o}
+    done
+done
+
+for e in probabilistic-lambda-calculus probabilistic-prolog; do
+    for d in F R; do
+	${GHC} ${GHCFLAGS} -o ${e}-${d}-haskell-ad ${e}-${d}-haskell-ad.hs
+	rm -f ${e}-${d}-haskell-ad.{hi,o}
+    done
+done
+
+for d in Fs R; do
+    ${GHC} ${GHCFLAGS} -o mlp-${d}-haskell-ad mlp-${d}-haskell-ad.hs
+    rm -f mlp-${d}-haskell-ad.{hi,o}
+done
+
+# rm -f Common_Haskell_AD.{hi,o} Crumple.{hi,o}
+
+echo "Running ..."
+
+runs=0
+
+for e in particle saddle; do
+    for d in FF FR RF RR; do
+	for run in ${runs}; do
+	    echo ${e}-${d} Haskell-AD ${run}
+	    time ./${e}-${d}-haskell-ad
+	done
+    done
+done
+
+for e in probabilistic-lambda-calculus probabilistic-prolog; do
+    for d in F R; do
+	for run in ${runs}; do
+	    echo ${e}-${d} Haskell-AD ${run}
+	    time ./${e}-${d}-haskell-ad
+	done
+    done
+done
+
+for d in Fs R; do
+    for run in ${runs}; do
+	echo mlp-${d} Haskell-AD ${run}
+	time ./mlp-${d}-haskell-ad
+    done
+done
+
+# rm -f *-haskell-ad

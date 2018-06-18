@@ -1,0 +1,12 @@
+smlnj: Warning: match nonexhaustive
+       Warning: calling polyEqual
+bigloo: warning: comparison between pointer and integer
+        Warning: at toplevel:
+        *** WARNING:bigloo:top-level
+ocaml: Warning 10: this expression should have type unit.
+       Warning 8: this pattern-matching is not exhaustive.
+mlton: Warning: foo.sml 164.1.
+       Function is not exhaustive.
+       Case is not exhaustive.
+       Declaration is not exhaustive.
+mit scheme: ;Warning: Unreferenced bound variable:

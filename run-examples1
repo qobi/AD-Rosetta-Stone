@@ -1,0 +1,457 @@
+#!/bin/tcsh -f
+unlimit stack
+set runs=(0 1 2)
+cp common-hips-autograd.py common_hips_autograd.py
+foreach e (particle saddle)
+  foreach run ($runs)
+    echo $e-FF ADIFOR $run
+    time ./$e-FF-adifor
+    end
+  foreach run ($runs)
+    echo $e-FF FADBAD++ $run
+    time ./$e-RR-fadbad++
+    end
+  foreach run ($runs)
+    echo $e-RR HIPS-Autograd $run
+    time python $e-RR-hips-autograd.py
+    end
+  foreach run ($runs)
+    echo $e-FF SCMUTILS $run
+    rm -f /tmp/script
+    echo >/tmp/script '(load "common-scmutils")'
+    echo -n >>/tmp/script '(load "'
+    echo -n >>/tmp/script $e
+    echo >>/tmp/script '-FF-scmutils")'
+    echo >>/tmp/script "(with-timings"
+    echo >>/tmp/script " (lambda () (run))"
+    echo >>/tmp/script " (lambda (run-time gc-time real-time)"
+    echo >>/tmp/script '  (display "Timings: ")'
+    echo >>/tmp/script '  (write (internal-time/ticks->seconds run-time))'
+    echo >>/tmp/script '  (write-char #\space)'
+    echo >>/tmp/script '  (write (internal-time/ticks->seconds gc-time))'
+    echo >>/tmp/script '  (write-char #\space)'
+    echo >>/tmp/script '  (write (internal-time/ticks->seconds real-time))'
+    echo >>/tmp/script '  (newline)))'
+    mit-scheme\
+      --library ~/schemes/install/scmutils/mit-scheme/lib\
+      --heap 6000 --band edwin-mechanics.com </tmp/script
+    rm -f /tmp/script
+    end
+  foreach run ($runs)
+    echo $e-FF Tapenade $run
+    time ./$e-FF-tapenade
+    end
+  foreach run ($runs)
+    echo $e-RR Torch $run
+    rm -f /tmp/script
+    echo >/tmp/script "#\!/bin/bash"
+    echo >>/tmp/script ". /home/qobi/torch/install/bin/torch-activate"
+    echo >>/tmp/script "th $e-RR-torch.lua"
+    chmod +x /tmp/script
+    time /tmp/script
+    rm -f /tmp/script
+    end
+  foreach d (FF FR RF RR)
+    foreach run ($runs)
+      echo $e-$d Bigloo $run
+      time ./$e-$d-bigloo
+      end
+    foreach run ($runs)
+      echo $e-$d Chicken $run
+      time ./$e-$d-chicken
+      end
+    foreach run ($runs)
+      echo $e-$d Gambit $run
+      time ./$e-$d-gambit
+      end
+    foreach run ($runs)
+      echo $e-$d Haskell-AD $run
+      time ./$e-$d-haskell-ad
+      end
+    foreach run ($runs)
+      echo $e-$d Ikarus $run
+      rm -f /tmp/script
+      echo >/tmp/script '(load "common-ikarus.scm")'
+      echo -n >>/tmp/script '(load "'
+      echo -n >>/tmp/script $e
+      echo -n >>/tmp/script "-"
+      echo -n >>/tmp/script $d
+      echo >>/tmp/script '-ikarus.scm")'
+      echo >>/tmp/script "(time (run))"
+      ikarus </tmp/script
+      rm -f /tmp/script
+      end
+    foreach run ($runs)
+      echo $e-$d Larceny $run
+      rm -f /tmp/script
+      echo >/tmp/script '(load "common-larceny.fasl")'
+      echo -n >>/tmp/script '(load "'
+      echo -n >>/tmp/script $e
+      echo -n >>/tmp/script "-"
+      echo -n >>/tmp/script $d
+      echo >>/tmp/script '-larceny.fasl")'
+      echo >>/tmp/script "(time (run))"
+      ~/schemes/install/larceny-1.3-bin-native-ia32-linux86/larceny\
+        </tmp/script
+      rm -f /tmp/script
+      end
+    foreach run ($runs)
+      echo $e-$d MITScheme $run
+      rm -f /tmp/script
+      echo >/tmp/script '(load "common-mitscheme")'
+      echo -n >>/tmp/script '(load "'
+      echo -n >>/tmp/script $e
+      echo -n >>/tmp/script "-"
+      echo -n >>/tmp/script $d
+      echo >>/tmp/script '-mitscheme")'
+      echo >>/tmp/script "(with-timings"
+      echo >>/tmp/script " (lambda () (run))"
+      echo >>/tmp/script " (lambda (run-time gc-time real-time)"
+      echo >>/tmp/script '  (display "Timings: ")'
+      echo >>/tmp/script '  (write (internal-time/ticks->seconds run-time))'
+      echo >>/tmp/script '  (write-char #\space)'
+      echo >>/tmp/script '  (write (internal-time/ticks->seconds gc-time))'
+      echo >>/tmp/script '  (write-char #\space)'
+      echo >>/tmp/script '  (write (internal-time/ticks->seconds real-time))'
+      echo >>/tmp/script '  (newline)))'
+      mit-scheme\
+	--library ~/schemes/install/scmutils/mit-scheme/lib\
+	--heap 6000 --band edwin-mechanics.com </tmp/script
+      rm -f /tmp/script
+      end
+    foreach run ($runs)
+      echo $e-$d MLton $run
+      time ./$e-$d-mlton
+      end
+    foreach run ($runs)
+      echo $e-$d MzC $run
+      time ./$e-$d-mzc
+      end
+    foreach run ($runs)
+      echo $e-$d MzScheme $run
+      time mzscheme -f $e-$d-mzscheme.ss
+      end
+    foreach run ($runs)
+      echo $e-$d OCaml $run
+      time ./$e-$d-ocaml
+      end
+    foreach run ($runs)
+      echo $e-$d "Scheme->C" $run
+      time ./$e-$d-s2c
+      end
+    foreach run ($runs)
+      echo $e-$d SML/NJ $run
+      time sml @SMLload=$e-$d-smlnj.x86-linux
+      end
+    foreach run ($runs)
+      echo $e-$d Stalin $run
+      time ./$e-$d-stalin
+      end
+    foreach run ($runs)
+      echo $e-$d Stalingrad $run
+      time ./$e-$d-stalingrad
+      end
+    end
+  end
+
+foreach run ($runs)
+  echo probabilistic-prolog-R PyTorch $run
+  time python probabilistic-prolog-R-pytorch.py
+  end
+
+foreach e (probabilistic-lambda-calculus probabilistic-prolog)
+  foreach run ($runs)
+    echo $e-F SCMUTILS $run
+    rm -f /tmp/script
+    echo >/tmp/script '(load "common-scmutils")'
+    echo -n >>/tmp/script '(load "'
+    echo -n >>/tmp/script $e
+    echo >>/tmp/script '-F-scmutils")'
+    echo >>/tmp/script "(with-timings"
+    echo >>/tmp/script " (lambda () (run))"
+    echo >>/tmp/script " (lambda (run-time gc-time real-time)"
+    echo >>/tmp/script '  (display "Timings: ")'
+    echo >>/tmp/script '  (write (internal-time/ticks->seconds run-time))'
+    echo >>/tmp/script '  (write-char #\space)'
+    echo >>/tmp/script '  (write (internal-time/ticks->seconds gc-time))'
+    echo >>/tmp/script '  (write-char #\space)'
+    echo >>/tmp/script '  (write (internal-time/ticks->seconds real-time))'
+    echo >>/tmp/script '  (newline)))'
+    mit-scheme\
+      --library ~/schemes/install/scmutils/mit-scheme/lib\
+      --heap 6000 --band edwin-mechanics.com </tmp/script
+    rm -f /tmp/script
+    end
+  foreach d (F R)
+    foreach run ($runs)
+      echo $e-$d Bigloo $run
+      time ./$e-$d-bigloo
+      end
+    foreach run ($runs)
+      echo $e-$d Chicken $run
+      time ./$e-$d-chicken
+      end
+    foreach run ($runs)
+      echo $e-$d Gambit $run
+      time ./$e-$d-gambit
+      end
+    foreach run ($runs)
+      echo $e-$d Haskell-AD $run
+      time ./$e-$d-haskell-ad
+      end
+    foreach run ($runs)
+      echo $e-$d Ikarus $run
+      rm -f /tmp/script
+      echo >/tmp/script '(load "common-ikarus.scm")'
+      echo -n >>/tmp/script '(load "'
+      echo -n >>/tmp/script $e
+      echo -n >>/tmp/script "-"
+      echo -n >>/tmp/script $d
+      echo >>/tmp/script '-ikarus.scm")'
+      echo >>/tmp/script "(time (run))"
+      ikarus </tmp/script
+      rm -f /tmp/script
+      end
+    foreach run ($runs)
+      echo $e-$d Larceny $run
+      rm -f /tmp/script
+      echo >/tmp/script '(load "common-larceny.fasl")'
+      echo -n >>/tmp/script '(load "'
+      echo -n >>/tmp/script $e
+      echo -n >>/tmp/script "-"
+      echo -n >>/tmp/script $d
+      echo >>/tmp/script '-larceny.fasl")'
+      echo >>/tmp/script "(time (run))"
+      ~/schemes/install/larceny-1.3-bin-native-ia32-linux86/larceny\
+        </tmp/script
+      rm -f /tmp/script
+      end
+    foreach run ($runs)
+      echo $e-$d MITScheme $run
+      rm -f /tmp/script
+      echo >/tmp/script '(load "common-mitscheme")'
+      echo -n >>/tmp/script '(load "'
+      echo -n >>/tmp/script $e
+      echo -n >>/tmp/script "-"
+      echo -n >>/tmp/script $d
+      echo >>/tmp/script '-mitscheme")'
+      echo >>/tmp/script "(with-timings"
+      echo >>/tmp/script " (lambda () (run))"
+      echo >>/tmp/script " (lambda (run-time gc-time real-time)"
+      echo >>/tmp/script '  (display "Timings: ")'
+      echo >>/tmp/script '  (write (internal-time/ticks->seconds run-time))'
+      echo >>/tmp/script '  (write-char #\space)'
+      echo >>/tmp/script '  (write (internal-time/ticks->seconds gc-time))'
+      echo >>/tmp/script '  (write-char #\space)'
+      echo >>/tmp/script '  (write (internal-time/ticks->seconds real-time))'
+      echo >>/tmp/script '  (newline)))'
+      mit-scheme\
+	--library ~/schemes/install/scmutils/mit-scheme/lib\
+	--heap 6000 --band edwin-mechanics.com </tmp/script
+      rm -f /tmp/script
+      end
+    foreach run ($runs)
+      echo $e-$d MLton $run
+      time ./$e-$d-mlton
+      end
+    foreach run ($runs)
+      echo $e-$d MzC $run
+      time ./$e-$d-mzc
+      end
+    foreach run ($runs)
+      echo $e-$d MzScheme $run
+      time mzscheme -f $e-$d-mzscheme.ss
+      end
+    foreach run ($runs)
+      echo $e-$d OCaml $run
+      time ./$e-$d-ocaml
+      end
+    foreach run ($runs)
+      echo $e-$d "Scheme->C" $run
+      time ./$e-$d-s2c
+      end
+    foreach run ($runs)
+      echo $e-$d SML/NJ $run
+      time sml @SMLload=$e-$d-smlnj.x86-linux
+      end
+    foreach run ($runs)
+      echo $e-$d Stalin $run
+      time ./$e-$d-stalin
+      end
+    foreach run ($runs)
+      echo $e-$d Stalingrad $run
+      time ./$e-$d-stalingrad
+      end
+    end
+  end
+
+foreach run ($runs)
+  echo mlp-R HIPS-Autograd $run
+  time python mlp-R-hips-autograd.py
+  end
+
+foreach run ($runs)
+  echo mlp-R PyTorch $run
+  time python mlp-R-pytorch.py
+  end
+
+foreach run ($runs)
+  echo mlp-R Torch $run
+  rm -f /tmp/script
+  echo >/tmp/script "#\!/bin/bash"
+  echo >>/tmp/script ". /home/qobi/torch/install/bin/torch-activate"
+  echo >>/tmp/script "th mlp-R-torch.lua"
+  chmod +x /tmp/script
+  time /tmp/script
+  rm -f /tmp/script
+  end
+
+foreach run ($runs)
+  echo mlp-Fs SCMUTILS $run
+  rm -f /tmp/script
+  echo >/tmp/script '(load "common-scmutils")'
+  echo >>/tmp/script '(load "mlp-Fs-scmutils")'
+  echo >>/tmp/script "(with-timings"
+  echo >>/tmp/script " (lambda () (run))"
+  echo >>/tmp/script " (lambda (run-time gc-time real-time)"
+  echo >>/tmp/script '  (display "Timings: ")'
+  echo >>/tmp/script '  (write (internal-time/ticks->seconds run-time))'
+  echo >>/tmp/script '  (write-char #\space)'
+  echo >>/tmp/script '  (write (internal-time/ticks->seconds gc-time))'
+  echo >>/tmp/script '  (write-char #\space)'
+  echo >>/tmp/script '  (write (internal-time/ticks->seconds real-time))'
+  echo >>/tmp/script '  (newline)))'
+  mit-scheme\
+    --library ~/schemes/install/scmutils/mit-scheme/lib\
+    --heap 6000 --band edwin-mechanics.com </tmp/script
+  rm -f /tmp/script
+  end
+
+foreach d (Fs R)
+  foreach run ($runs)
+    echo mlp-$d Bigloo $run
+    time ./mlp-$d-bigloo
+    end
+  foreach run ($runs)
+    echo mlp-$d Chicken $run
+    time ./mlp-$d-chicken
+    end
+  foreach run ($runs)
+    echo mlp-$d CppAD $run
+    time ./mlp-$d-cppad
+    end
+  foreach run ($runs)
+    echo mlp-$d Gambit $run
+    time ./mlp-$d-gambit
+    end
+  foreach run ($runs)
+    echo mlp-$d Haskell-AD $run
+    time mlp-$d-haskell-ad
+    end
+  foreach run ($runs)
+    echo mlp-$d Ikarus $run
+    rm -f /tmp/script
+    echo >/tmp/script '(load "common-ikarus.scm")'
+    echo -n >>/tmp/script '(load "mlp-'
+    echo -n >>/tmp/script $d
+    echo >>/tmp/script '-ikarus.scm")'
+    echo >>/tmp/script "(time (run))"
+    ikarus </tmp/script
+    rm -f /tmp/script
+    end
+  foreach run ($runs)
+    echo mlp-$d Larceny $run
+    rm -f /tmp/script
+    echo >/tmp/script '(load "common-larceny.fasl")'
+    echo -n >>/tmp/script '(load "mlp-'
+    echo -n >>/tmp/script $d
+    echo >>/tmp/script '-larceny.fasl")'
+    echo >>/tmp/script "(time (run))"
+    ~/schemes/install/larceny-1.3-bin-native-ia32-linux86/larceny\
+      </tmp/script
+    rm -f /tmp/script
+    end
+  foreach run ($runs)
+    echo mlp-$d MITScheme $run
+    rm -f /tmp/script
+    echo >/tmp/script '(load "common-mitscheme")'
+    echo -n >>/tmp/script '(load "mlp-'
+    echo -n >>/tmp/script $d
+    echo >>/tmp/script '-mitscheme")'
+    echo >>/tmp/script "(with-timings"
+    echo >>/tmp/script " (lambda () (run))"
+    echo >>/tmp/script " (lambda (run-time gc-time real-time)"
+    echo >>/tmp/script '  (display "Timings: ")'
+    echo >>/tmp/script '  (write (internal-time/ticks->seconds run-time))'
+    echo >>/tmp/script '  (write-char #\space)'
+    echo >>/tmp/script '  (write (internal-time/ticks->seconds gc-time))'
+    echo >>/tmp/script '  (write-char #\space)'
+    echo >>/tmp/script '  (write (internal-time/ticks->seconds real-time))'
+    echo >>/tmp/script '  (newline)))'
+    mit-scheme\
+      --library ~/schemes/install/scmutils/mit-scheme/lib\
+      --heap 6000 --band edwin-mechanics.com </tmp/script
+    rm -f /tmp/script
+    end
+  foreach run ($runs)
+    echo mlp-$d MLton $run
+    time ./mlp-$d-mlton
+    end
+  foreach run ($runs)
+    echo mlp-$d MzC $run
+    time ./mlp-$d-mzc
+    end
+  foreach run ($runs)
+    echo mlp-$d MzScheme $run
+    time mzscheme -f mlp-$d-mzscheme.ss
+    end
+  foreach run ($runs)
+    echo mlp-$d OCaml $run
+    time ./mlp-$d-ocaml
+    end
+  foreach run ($runs)
+    echo mlp-$d "Scheme->C" $run
+    time ./mlp-$d-s2c
+    end
+  foreach run ($runs)
+    echo mlp-$d SML/NJ $run
+    time sml @SMLload=mlp-$d-smlnj.x86-linux
+    end
+  foreach run ($runs)
+    echo mlp-$d Stalin $run
+    time ./mlp-$d-stalin
+    end
+  foreach run ($runs)
+    echo mlp-$d Stalingrad $run
+    time ./mlp-$d-stalingrad
+    end
+  end
+
+foreach d (Fs Fv)
+  foreach run ($runs)
+    echo mlp-$d ADIC $run
+    time ./mlp-$d-adic
+    end
+  foreach run ($runs)
+    echo mlp-$d ADIFOR $run
+    time ./mlp-$d-adifor
+    end
+  end
+
+foreach d (Fs Fv R)
+  foreach run ($runs)
+    echo mlp-$d ADOLC $run
+    time ./mlp-$d-adolc
+    end
+  foreach run ($runs)
+    echo mlp-$d FADBAD++ $run
+    time ./mlp-$d-fadbad++
+    end
+  foreach run ($runs)
+    echo mlp-$d Tapenade $run
+    time ./mlp-$d-tapenade
+    end
+  end
+
+rm -f common_hips_autograd.py
+rm -f *.pyc
