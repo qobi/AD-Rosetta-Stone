@@ -18,7 +18,7 @@ There are five examples.
 
 * **saddle** point finding (FF / FR / RF / RR)
 
-  This example finds a saddle point by nested optimization. It does not make use of the "fixedpoint" trick.
+  This example finds a saddle point by nested optimization. It does not make use of the “fixedpoint” trick.
 
 * **particle** path optimization (FF / FR / RF / RR)
 
@@ -34,7 +34,7 @@ There are five examples.
 
 ## Forward vs Reverse Mode
 
-Two of the examples (*saddle* and *particle*) involve nested use of AD.  Each AD operation can be done using either forward or reverse, leading to variants listed in parenthesis above.
+Two of the examples (*saddle* and *particle*) involve nested use of AD.  Each AD operation can be done using either forward or reverse, leading to variants listed in parenthesis above.  Some systems support both scalar and vector forward mode, the latter sometimes called “stacked tangents.”  When this would make sense for a particular benchmark (currently only *mlp*) instead of just an F variant, there are Fs and Fv variants.
 
 ## Coding Style
 
@@ -58,10 +58,12 @@ The F vs R variants are kept as identical as possible, ideally changing only `gr
 
 We'd like to add rows to the table.  Since there are already a bunch of systems fleshed out (Haskell ad, sml, Scheme R6RSAD, ocaml, VLAD/Stalingrad), this should be straightforward for anyone conversant in a particular language and an appropriate AD subsystem.  You don't even have to actually understand the innards of the interpreters in order to port them.
 
+Note that some of the examples have been implemented in Fortran or C-based AD systems (Tapenade, ADIFOR, ADIC, ADOLC, etc).  The more dynamic examples can be difficult to port to languages like that, at least without Procrustean effort.  So if you're interested in adding a language to the table but don't want to do all the examples, that is just fine.  We are happy with a sparse table.
+
 We would also welcome new examples.  Higher dimensional examples would be of particular interest, given that all but one of the current examples are extremely low dimensional.
 
 ## Idiomatic Variants and Other Coding Choices
 
 If people really want to make more idiomatic implementations of the examples, to show off language facilities to better effect, we'd be happy to make a new branch for that.  But we'd like to maintain the above criteria on the master branch.
 
-We are of course aware that the uses of Forward and Reverse mode here are often inappropriate.  In particular, using Reverse on a scalar function is silly.  These examples are expository, and not intended as examples of efficient code.
+We are of course aware that the uses of Forward and Reverse mode here are often inappropriate.  In particular, using Reverse on a scalar function is silly.  These examples are expository and for testing, and are not intended as showcases of efficient code.
