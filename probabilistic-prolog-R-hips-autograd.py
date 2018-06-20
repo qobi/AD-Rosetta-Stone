@@ -1,4 +1,4 @@
-from common_pytorch import gradient_ascent_R
+from common_hips_autograd import gradient_ascent_R
 
 def make_constant(value):
         return [0, value]

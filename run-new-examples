@@ -1,0 +1,68 @@
+#!/bin/tcsh -f
+unlimit stack
+set runs=(0)
+cp -i common-hips-autograd.py common_hips_autograd.py
+cp -i common-pytorch.py common_pytorch.py
+
+foreach e (particle saddle)
+  foreach run ($runs)
+    echo $e-RR HIPS-Autograd $run
+    time python $e-RR-hips-autograd.py
+    end
+  foreach run ($runs)
+    echo $e-RR Torch $run
+    rm -f /tmp/script
+    echo >/tmp/script "#\!/bin/bash"
+    echo >>/tmp/script ". /home/qobi/torch/install/bin/torch-activate"
+    echo >>/tmp/script "th $e-RR-torch.lua"
+    chmod +x /tmp/script
+    time /tmp/script
+    rm -f /tmp/script
+    end
+  end
+
+foreach e (probabilistic-lambda-calculus probabilistic-prolog)
+  foreach run ($runs)
+    echo $e-R HIPS-Autograd $run
+    time python $e-R-hips-autograd.py
+    end
+  foreach run ($runs)
+    echo $e-R PyTorch $run
+    time python $e-R-pytorch.py
+    end
+  foreach run ($runs)
+    echo $e-RR Torch $run
+    rm -f /tmp/script
+    echo >/tmp/script "#\!/bin/bash"
+    echo >>/tmp/script ". /home/qobi/torch/install/bin/torch-activate"
+    echo >>/tmp/script "th $e-R-torch.lua"
+    chmod +x /tmp/script
+    time /tmp/script
+    rm -f /tmp/script
+    end
+  end
+
+foreach run ($runs)
+  echo mlp-R HIPS-Autograd $run
+  time python mlp-R-hips-autograd.py
+  end
+
+foreach run ($runs)
+  echo mlp-R PyTorch $run
+  time python mlp-R-pytorch.py
+  end
+
+foreach run ($runs)
+  echo mlp-R Torch $run
+  rm -f /tmp/script
+  echo >/tmp/script "#\!/bin/bash"
+  echo >>/tmp/script ". /home/qobi/torch/install/bin/torch-activate"
+  echo >>/tmp/script "th mlp-R-torch.lua"
+  chmod +x /tmp/script
+  time /tmp/script
+  rm -f /tmp/script
+  end
+
+rm -f common_hips_autograd.py
+rm -f common_pytorch.py
+rm -f *.pyc
