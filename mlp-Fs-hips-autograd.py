@@ -1,6 +1,6 @@
 from autograd.numpy import exp
-from autograd import grad
-from common_hips_autograd import vminus, magnitude_squared
+from autograd import deriv
+from common_hips_autograd import vminus, magnitude_squared, replace_ith
 
 def sum_activities(activities):
         def inner(bias_ws):
@@ -39,7 +39,27 @@ def s_minus_k_times(x, k, y):
                 return [s_minus_k_times(x[i],k,y[i]) for i in range(len(x))]
         return x-k*y
 
-weight_gradient = grad
+def weight_gradient(f):
+        def inner(ws):
+                result = []
+                for li in range(len(ws)):
+                        ll = ws[li]
+                        result.append(
+                                [[deriv(lambda x: f(
+                                        replace_ith(
+                                                ws,
+                                                li,
+                                                replace_ith(
+                                                        ws[li],
+                                                        ui,
+                                                        replace_ith(
+                                                                ws[li][ui],
+                                                                wi,
+                                                                x)))))(ws[li][ui][wi])
+                          for wi in range(len(ll[ui]))]
+                         for ui in range(len(ll))])
+                return result
+        return inner
 
 def vanilla(f, w0, n, eta):
 	for i in range(n):

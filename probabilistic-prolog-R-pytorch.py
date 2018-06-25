@@ -188,7 +188,7 @@ def alpha_rename(clause, offset):
 def inner_loop(p, substitution, terms, clauses):
 	if substitution==False:
                 return []
-        if terms==[]:
+        if len(terms)==0:
                 return [make_double(p, substitution)]
         result = []
         for double in proof_distribution(apply_substitution(substitution,
@@ -243,7 +243,6 @@ def objective(p):
                 result = result*likelihood(proof_distribution(make_compound_term(make_p(), [make_constant(observation)]), clauses))
         return result
 
-if __name__=="__main__":
-	for i in range(10):
-		x = gradient_ascent_R(objective, [0.5, 0.5], 1000, 0.1)
-		print x[0], x[1]
+for i in range(10):
+	x = gradient_ascent_R(objective, [0.5, 0.5], 1000, 0.1)
+	print x[0], x[1]

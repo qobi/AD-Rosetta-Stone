@@ -1,0 +1,40 @@
+gcc            stretch 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)
+g++            stretch 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)
+gfortran       stretch 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)
+Stalingrad             triple/a
+ADIFOR                 2.0D 2.1.8          not sure what latest version is
+Tapenade               2.2.2               should update to 3.13
+ADIC                   1.2.0               should update to 1.2.3
+ADOLC          stretch 2.6.2-1+b1
+CppAD                  20180000.0
+FADBAD++               1.4                 should update to 2.1
+MLton          stretch 20130715
+OCaml          stretch 4.02.3
+SML/NJ         stretch v110.79
+GHC            stretch 8.0.1
+Bigloo                 4.3b
+Chicken        stretch 4.11.0
+Gambit         stretch 4.2.8-2+b1
+Ikarus                 0.0.4-rc1+
+Larceny                1.3
+MITScheme      stretch 9.1.1-5+b2
+MzC            stretch v6.7 [3m]
+MzScheme       stretch v6.7 [3m]
+Scheme->C              15mar93jfb bgc
+SCMUTILS               20160827
+Stalin         stretch 0.11
+Python         stretch 2.7.13
+Lua                    LUAJIT21
+PyTorch                0.3.1
+Torch
+Torch Autograd         0.1
+HIPS Autograd          autograd-1.2 future-0.16.0 numpy-1.14.5
+
+pip install torch autograd
+git clone https://github.com/twitter/torch-autograd.git
+cd torch-autograd
+luarocks make
+cabal update
+cabal install ad
+
+Intel(R) Xeon(R) Gold 6136 CPU @ 3.00GHz

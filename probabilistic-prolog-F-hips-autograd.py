@@ -1,4 +1,4 @@
-from common_hips_autograd import gradient_ascent_R
+from common_hips_autograd import gradient_ascent_F
 
 def make_constant(value):
         return [0, value]
@@ -244,5 +244,5 @@ def objective(p):
         return result
 
 for i in range(10):
-	x = gradient_ascent_R(objective, [0.5, 0.5], 1000, 0.1)
+	x = gradient_ascent_F(objective, [0.5, 0.5], 1000, 0.1)
 	print x[0], x[1]

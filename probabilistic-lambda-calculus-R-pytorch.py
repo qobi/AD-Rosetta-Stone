@@ -85,7 +85,7 @@ def lookup_value(variable, environment):
 	return []
 
 def merge_environments(environment1, environment2):
-	if environment1==[]:
+	if len(environment1)==0:
 		return environment2
 	else:
 		environment = merge_environments(environment1[1:], environment2)
@@ -191,7 +191,6 @@ def objective(p):
 		result = result*likelihood(observation, tagged_distribution)
 	return result
 
-if __name__=="__main__":
-	for i in range(10):
-		x = gradient_ascent_R(objective, [0.5, 0.5], 1000, 0.1)
-		print x[0], x[1]
+for i in range(10):
+	x = gradient_ascent_R(objective, [0.5, 0.5], 1000, 0.1)
+	print x[0], x[1]

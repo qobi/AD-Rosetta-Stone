@@ -11,7 +11,7 @@ def naive_euler(w):
                         result = result+1.0/cha.distance(x, c)
 	        return result
 	while True:
-		xddot = cha.ktimesv(-1.0, cha.gradient_R(p)(x))
+		xddot = cha.ktimesv(-1.0, cha.gradient_F(p)(x))
 		x_new = cha.vplus(x, cha.ktimesv(delta_t, xdot))
 		if (x_new[1]<=0.0):
 		        delta_t_f = -x[1]/xdot[1]
@@ -21,4 +21,4 @@ def naive_euler(w):
 		xdot = cha.vplus(xdot, cha.ktimesv(delta_t, xddot))
 
 w0 = 0.0
-print cha.multivariate_argmin_R(lambda w_list: naive_euler(w_list[0]), [w0])[0]
+print cha.multivariate_argmin_F(lambda w_list: naive_euler(w_list[0]), [w0])[0]

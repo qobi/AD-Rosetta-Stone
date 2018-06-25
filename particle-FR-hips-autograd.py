@@ -21,4 +21,4 @@ def naive_euler(w):
 		xdot = cha.vplus(xdot, cha.ktimesv(delta_t, xddot))
 
 w0 = 0.0
-print cha.multivariate_argmin_R(lambda w_list: naive_euler(w_list[0]), [w0])[0]
+print cha.multivariate_argmin_F(lambda w_list: naive_euler(w_list[0]), [w0])[0]

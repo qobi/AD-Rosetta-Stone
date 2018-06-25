@@ -111,6 +111,6 @@ xor_data.xor_label[1] = 0.0
 xor_data.xor_label[2] = 1.0
 xor_data.xor_label[3] = 1.0
 xor_data.xor_label[4] = 0.0
-xor_ws0 = vanilla(error_on_dataset, xor_ws0, xor_data, 1000000, 0.3)
+xor_ws0 = vanilla(error_on_dataset, xor_ws0, xor_data, 10000, 0.3)
 Error = error_on_dataset(xor_ws0, xor_data)
 print(Error)

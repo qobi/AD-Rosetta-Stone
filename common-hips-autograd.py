@@ -1,26 +1,38 @@
-import autograd.numpy as np
-from autograd import grad
+from autograd.numpy import sqrt
+from autograd import deriv, grad
 
 def vplus(u, v):
-	return np.add(u, v)
+        return [u[i]+v[i] for i in range(len(u))]
 
 def vminus(u, v):
-	return np.subtract(u, v)
+        return [u[i]-v[i] for i in range(len(u))]
 
 def ktimesv(k, v):
-	return np.multiply(k, v)
+        return [k*v[i] for i in range(len(v))]
 
 def magnitude_squared(x):
-	return np.dot(x, x)
+        sum = 0
+        for i in range(len(x)):
+                sum = sum+x[i]*x[i]
+	return sum
 
 def magnitude(x):
-	return np.sqrt(magnitude_squared(x))
+	return sqrt(magnitude_squared(x))
 
 def distance_squared(u, v):
 	return magnitude_squared(vminus(u, v))
 
 def distance(u, v):
-	return np.sqrt(distance_squared(u, v))
+	return sqrt(distance_squared(u, v))
+
+def replace_ith(x, i, xi):
+        return x[0:i]+[xi]+x[i+1:len(x)]
+
+def gradient_F(f):
+        def inner(x):
+                return [deriv(lambda xi: f(replace_ith(x, i, xi)))(x[i])
+                        for i in range(len(x))]
+        return inner
 
 def gradient_R(f):
         return grad(f)
@@ -41,22 +53,19 @@ def multivariate_argmin_F(f, x):
 	gx = g(x)
 	eta = 1e-5
 	i = 0
-	x_star = np.zeros(len(x))
-	for j in range(len(x)):
-		x_star[j] = x[j]
 	while True:
 		if magnitude(gx)<1e-5:
-			return x_star
+			return x
 		if i==10:
 			eta = 2.0*eta
 			i = 0
 			continue
-		x_prime = vminus(x_star, ktimesv(eta, gx))
-		if distance(x_star, x_prime)<=1e-5:
-			return x_star
+		x_prime = vminus(x, ktimesv(eta, gx))
+		if distance(x, x_prime)<=1e-5:
+			return x
 		fx_prime = f(x_prime)
 		if fx_prime<fx:
-			x_star = x_prime
+			x = x_prime
 			fx = fx_prime
                         gx = g(x_prime)
 			i = i+1
@@ -76,22 +85,19 @@ def multivariate_argmin_R(f, x):
 	gx = g(x)
 	eta = 1e-5
 	i = 0
-	x_star = np.zeros(len(x))
-	for j in range(len(x)):
-		x_star[j] = x[j]
 	while True:
 		if magnitude(gx)<1e-5:
-			return x_star
+			return x
 		if i==10:
 			eta = 2.0*eta
 			i = 0
 			continue
-		x_prime = vminus(x_star, ktimesv(eta, gx))
-		if distance(x_star, x_prime)<=1e-5:
-			return x_star
+		x_prime = vminus(x, ktimesv(eta, gx))
+		if distance(x, x_prime)<=1e-5:
+			return x
 		fx_prime = f(x_prime)
 		if fx_prime<fx:
-			x_star = x_prime
+			x = x_prime
 			fx = fx_prime
                         gx = g(x_prime)
 			i = i+1
