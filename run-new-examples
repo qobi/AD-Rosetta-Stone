@@ -5,9 +5,11 @@ cp -i common-hips-autograd.py common_hips_autograd.py
 cp -i common-pytorch.py common_pytorch.py
 
 foreach e (particle saddle)
-  foreach run ($runs)
-    echo $e-RR HIPS-Autograd $run
-    time python $e-RR-hips-autograd.py
+  foreach d (FF FR RF RR)
+    foreach run ($runs)
+      echo $e-$d HIPS-Autograd $run
+      time python $e-$d-hips-autograd.py
+      end
     end
   foreach run ($runs)
     echo $e-RR Torch $run
@@ -22,9 +24,11 @@ foreach e (particle saddle)
   end
 
 foreach e (probabilistic-lambda-calculus probabilistic-prolog)
-  foreach run ($runs)
-    echo $e-R HIPS-Autograd $run
-    time python $e-R-hips-autograd.py
+  foreach d (F R)
+    foreach run ($runs)
+      echo $e-$d HIPS-Autograd $run
+      time python $e-$d-hips-autograd.py
+      end
     end
   foreach run ($runs)
     echo $e-R PyTorch $run
@@ -42,9 +46,11 @@ foreach e (probabilistic-lambda-calculus probabilistic-prolog)
     end
   end
 
-foreach run ($runs)
-  echo mlp-R HIPS-Autograd $run
-  time python mlp-R-hips-autograd.py
+foreach d (Fs R)
+  foreach run ($runs)
+    echo mlp-$d HIPS-Autograd $run
+    time python mlp-$d-hips-autograd.py
+    end
   end
 
 foreach run ($runs)
